@@ -16,6 +16,7 @@
 ## You can assume a user will always enter a number only.
 
 import requests
+import json
 
 from flask import Flask, request
 app = Flask(__name__)
@@ -52,8 +53,41 @@ def res():
 
 ## MY INTERACTIVE DATA EXCHANGE
 
+@app.route('/news')
+def form1():
+	s = """<!DOCTYPE html>
+<html>
+<body>
 
+<form action="http://localhost:5000/newsresults" method="GET">
+  This program searches hundreds of thousands of bibliographic records for American newspapers. Try searching "New York" or "Fashion".
+  <b4> Please enter a search term:<br>
+  <input type="text" name="newsword" value="">
+  <br><br>
+  <input type="submit" value="Submit">
+</form> 
 
+</body>
+</html>""" 
+	return s
+
+@app.route('/newsresults', methods = ['POST', 'GET'])
+def res2():
+	if request.method == 'GET':
+		result = request.args
+		newsword1 = result.get('newsword')
+		news_dict = {'terms':newsword1, 'format':'json'}		
+		results2 = requests.get('http://chroniclingamerica.loc.gov/search/titles/results/', params = news_dict)
+
+		string1 = "Below is a list of newspaper titles related to your search term: {0}\n".format(newsword1)
+		json_dict = json.loads(results2.text)
+
+		article_list = []
+
+		for article in json_dict['items']:
+			article_list.append(article['title'])
+
+		return string1 + str(article_list)
 
 if __name__ == '__main__':
     app.run()
